@@ -170,17 +170,19 @@ def k_fold_dtree(features, target, n_splits):
     kf = KFold(n_splits=n_splits, shuffle=True)
 
     for train_index, test_index in kf.split(features):
+        itemindex = np.where(train_index == 10472)
+        train_index = np.delete(train_index, itemindex)
+
+        itemindex = np.where(test_index == 10472)
+        test_index = np.delete(test_index, itemindex)
+
         X_train, X_test = features.loc[train_index], features.loc[test_index]
         y_train, y_test = target[train_index], target[test_index]
-        print("???")
-        print(set(target))
-        print(set(y_train))
-
 
         '''print("<><><><><>")
         i = 0
-        for a in X_train.values:
-            print(i)
+        for a in y_train.values:
+            print(train_index[i])
             print(a)
             print(type(a))
             i += 1
@@ -208,7 +210,8 @@ def random_forest(features, target, X_test, set_size, no_of_trees):
     for n in range(no_of_trees):
         random_numbers = []
         for x in range(0, int(len(target)*set_size)):
-            random_numbers.append(random.randint(0, len(target) - 1))
+            number = random.randint(0, len(target) - 1)
+            random_numbers.append(number if number != 10472 else number + 1)
         #  Randomly select data
         features_sample = features.loc[random_numbers]
         target_sample = target[random_numbers]
@@ -240,7 +243,9 @@ date_converter = lambda x: int(time.mktime(datetime.strptime(x, '%B %d, %Y').tim
 
 
 def convert_columns_to_int(value):
-    if "M" in value or "k" in value:
+    if type(value) == int:
+        value = value
+    elif "M" in value or "k" in value:
         value = millions_converter(value)
     elif "Varies with device" in value:
         value = 0
@@ -256,7 +261,7 @@ def convert_types_to_int(value, types):
 def prepare_features(dataset, feature_names):
     dataset[dataset.keys()[1]] = dataset[dataset.keys()[1]].replace(np.NaN, -1)
     data_list = dataset.values.tolist()
-    data_list.remove(data_list[10472])
+    #data_list.remove(data_list[10472])
     #["Category", "Rating", "Reviews", "Size", "Price", "Content Rating", "Genres", "Last Updated"]
     categories = list(set([row[0] for row in data_list]))
     content_ratings = list(set([row[5] for row in data_list]))
@@ -312,13 +317,15 @@ def main_iris():
 
 
 def main_google_play():
-    address = 'google-play-store-apps\googleplaystore.csv'
+    address = 'google-play-store-apps\googleplaystore1.csv'
     feature_names = ["Category", "Rating", "Reviews", "Size", "Price", "Content Rating", "Genres", "Last Updated"]
     target_name = "Installs"
 
-    dataset = read_fileG(address)
+    dataset = read_fileG(address).drop(10472)
+    dataset.to_csv("test.csv", sep='\t')
+    print(dataset.values[10838])
     feature_data = prepare_features(dataset[feature_names], feature_names)
-    target_data = dataset[target_name].drop(10472)
+    target_data = dataset[target_name]#.drop(10472)
 
     #  Simple data split
     X_train, X_test, y_train, y_test = split_data(feature_data, target_data)
@@ -337,12 +344,11 @@ def main_google_play():
 
     k_fold = k_fold_dtree(feature_data, target_data, 5)
     print("K-fold validation:", np.mean(k_fold))
-    '''
+
     #  Validation of a random decision tree forest.
     #  Methods used: accuracy score, confusion matrix, precision score and recall score
-    forest_pred = random_forest(feature_data, target_data, X_test, 4)
+    forest_pred = random_forest(feature_data, target_data, X_test, 4, 5)
     validation(y_test, forest_pred, "Random forest")
-    '''
 
 if __name__ == '__main__':
     main_iris()
