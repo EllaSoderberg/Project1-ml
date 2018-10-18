@@ -55,7 +55,6 @@ def read_fileI(file, features_list, target):
     names_list = features_list.copy()
     names_list.append(target)
     data = pd.read_csv(file, names=names_list)
-    print(data.head())
     return data
 
 def plot_dataset(dataset):
@@ -64,6 +63,12 @@ def plot_dataset(dataset):
     :param dataset: A dataset
     """
     colors = ['red', 'green', 'yellow']
+    print(dataset.shape)
+    print(dataset.head(20))
+    print(dataset.describe())
+
+    # class distribution
+    print(dataset.groupby('class').size())
     scatter_matrix(dataset)
     dataset.plot(kind='box', subplots=True, layout=(2, 2), sharex=False, sharey=False)
     dataset.hist()
@@ -288,7 +293,6 @@ def main_iris():
     feature_data = dataset[feature_names]
     target_data = dataset[target_name]
 
-    print(dataset)
     #TODO refactor names
     iris = dataset
     iris_features = feature_data
@@ -298,7 +302,7 @@ def main_iris():
     X_train, X_test, y_train, y_test = split_data(iris_features, iris_target)
 
     #  Visualisation of data
-    # plot_dataset(iris)
+    plot_dataset(iris)
     plot_tree(decision_tree(X_train, y_train), feature_names, ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'],
               'treefile.png')
 
@@ -352,4 +356,4 @@ def main_google_play():
 
 if __name__ == '__main__':
     main_iris()
-    main_google_play()
+    #main_google_play()
