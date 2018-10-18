@@ -24,10 +24,13 @@ from datetime import datetime
 """
 TODO:
     * Make the plot dataset function more specific (names on axes, different colors depending on values) might be easier to do in excel??
-    * Add the confusion matrix + recall validation to every k-fold and sum it up to calculate the final precision/recall/accuracy
+    * Fix the final precision/recall/accuracy on random forest model
     * Decide what data to experiment with in the google play dataset
     * Comment the code
     * Write the report
+    * Move the cleaning up code for google play dataset to a separate file
+    * Move the main functions to a separate file
+    * Get average from precision score?
 """
 
 
@@ -118,19 +121,6 @@ def decision_tree(X_train, y_train):
     return clf
 
 
-def clf_accuracy(clf, X_test, y_test):
-    """
-    Calculates the accuracy score
-    :param clf: Classifier
-    :param X_test: Features testing data
-    :param y_test: Target testing data
-    :return: the value of the accuracy
-    """
-    pred = clf.predict(X_test)
-    acc = accuracy_score(pred, y_test)
-    return acc
-
-
 def validation(true, pred, model):
     """
     Prints validation scores based on a prediction
@@ -158,14 +148,19 @@ def k_fold_dtree(features, target, n_splits):
     """
     acc_list = []
     kf = KFold(n_splits=n_splits, shuffle=True)
+    different_values = len(set(target))
+    c_matrix = np.zeros((different_values, different_values))
 
     for train_index, test_index in kf.split(features):
         X_train, X_test = features.loc[train_index], features.loc[test_index]
         y_train, y_test = target[train_index], target[test_index]
 
         clf = decision_tree(X_train, y_train)
-        acc = clf_accuracy(clf, X_test, y_test)
+        pred = clf.predict(X_test)
+        c_matrix += confusion_matrix(y_test, pred)
+        acc = accuracy_score(pred, y_test)
         acc_list.append(acc)
+    print(c_matrix/n_splits)
     return acc_list
 
 
@@ -185,7 +180,7 @@ def random_forest(features, target, X_test, set_size, no_of_trees):
     for n in range(no_of_trees):
         random_numbers = []
         for x in range(0, int(len(target)*set_size)):
-            random_numbers.append(random.randint(0, len(target)))
+            random_numbers.append(random.randint(0, len(target)-1))
         #  Randomly select data
         features_sample = features.loc[random_numbers]
         target_sample = target[random_numbers]
@@ -288,7 +283,9 @@ def main_iris():
 
 def main_google_play():
     address = 'google-play-store-apps\googleplaystore.csv'
-    dataset = read_file(address)
+    feature_names = ["Category", "Rating", "Reviews", "Size", "Installs", "Price", "Content Rating", "Genres", "Last Updated"]
+    target_name = "Installs"
+    dataset = read_file(address, feature_names, target_name)
     prepared_dataset = prepare_dataset(dataset)
     print(prepared_dataset)
 
@@ -315,4 +312,5 @@ def main_google_play():
 
 
 if __name__ == '__main__':
-    main_iris()
+    #main_iris()
+    main_google_play()
