@@ -62,7 +62,6 @@ def plot_dataset(dataset, target, layout_size):
     Shows a scatter matrix, a histogram and a plot.
     :param dataset: A dataset
     """
-    colors = ['red', 'green', 'yellow']
     print(dataset.shape)
     print(dataset.head(20))
     print(dataset.describe())
@@ -334,7 +333,7 @@ def main_google_play():
     X_train, X_test, y_train, y_test = split_data(feature_data, target_data)
 
     #  Visualisation of data
-    plot_dataset(pd.concat([feature_data, target_data], axis=1, join='inner'), feature_names, 3)
+    plot_dataset(pd.concat([feature_data, target_data], axis=1, join='inner'), target_name, 3)
     #plot_tree(prepared_dataset, decision_tree(X_train, y_train), ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'],
     #              'gplayfile.png')
 
