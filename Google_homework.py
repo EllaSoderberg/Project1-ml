@@ -55,6 +55,7 @@ def read_fileI(file, features_list, target):
     names_list = features_list.copy()
     names_list.append(target)
     data = pd.read_csv(file, names=names_list)
+    print(data.head())
     return data
 
 def plot_dataset(dataset):
@@ -194,7 +195,7 @@ def random_forest(features, target, X_test, set_size, no_of_trees):
     for n in range(no_of_trees):
         random_numbers = []
         for x in range(0, int(len(target)*set_size)):
-            random_numbers.append(random.randint(0, len(target)))
+            random_numbers.append(random.randint(0, len(target) - 1))
         #  Randomly select data
         features_sample = features.loc[random_numbers]
         target_sample = target[random_numbers]
@@ -229,42 +230,35 @@ def convert_columns_to_int(value):
     if "M" in value or "k" in value:
         value = millions_converter(value)
     elif "Varies with device" in value:
-        value = None
+        value = 0
     elif "+" in value:
         value = plus_remover(value)
     else:
         value = int(value)
     return value
 
-
 def convert_types_to_int(value, types):
     return types.index(value)
 
-
-def prepare_dataset(dataset):
+def prepare_features(dataset, feature_names):
+    dataset[dataset.keys()[1]] = dataset[dataset.keys()[1]].replace(np.NaN, -1)
     data_list = dataset.values.tolist()
-
     data_list.remove(data_list[10472])
-    categories = list(set([row[1] for row in data_list]))
-    content_ratings = list(set([row[8] for row in data_list]))
-    genres = list(set([row[9] for row in data_list]))
+    #["Category", "Rating", "Reviews", "Size", "Price", "Content Rating", "Genres", "Last Updated"]
+    categories = list(set([row[0] for row in data_list]))
+    content_ratings = list(set([row[5] for row in data_list]))
+    genres = list(set([row[6] for row in data_list]))
 
     for row in data_list:
-        row[1] = convert_types_to_int(row[1], categories)
+        row[0] = convert_types_to_int(row[0], categories)
+        row[2] = convert_columns_to_int(row[2])
         row[3] = convert_columns_to_int(row[3])
-        row[4] = convert_columns_to_int(row[4])
-        row[5] = convert_columns_to_int(row[5])
-        row[7] = price_converter(row[7])
-        row[8] = convert_types_to_int(row[8], content_ratings)
-        row[9] = convert_types_to_int(row[9], genres)
-        row[10] = date_converter(row[10])
+        row[4] = price_converter(row[4])
+        row[5] = convert_types_to_int(row[5], content_ratings)
+        row[6] = convert_types_to_int(row[6], genres)
+        row[7] = date_converter(row[7])
 
-    #test = [row[12] for row in data_list]
-    #print(set(test))
-
-    prepared_data = [row[1:6] + row[7:11] for row in data_list]
-
-    return prepared_data
+    return pd.DataFrame(data_list, columns=feature_names)
 
 
 def main_iris():
@@ -306,15 +300,14 @@ def main_iris():
 
 def main_google_play():
     address = 'google-play-store-apps\googleplaystore.csv'
-    feature_names = ["Category", "Rating", "Reviews", "Size", "Installs", "Price", "Content Rating", "Genres", "Last Updated"]
+    feature_names = ["Category", "Rating", "Reviews", "Size", "Price", "Content Rating", "Genres", "Last Updated"]
     target_name = "Installs"
 
     dataset = read_fileG(address)
-    feature_data = dataset[feature_names]
-    target_data = dataset[target_name]
-
-    #prepared_dataset = prepare_dataset(dataset)
-    print(target_data)
+    feature_data = prepare_features(dataset[feature_names], feature_names)
+    target_data = dataset[target_name].drop(10472)
+    print(len(feature_data))
+    print(len(target_data))
     '''
     #  Simple data split
     X_train, X_test, y_train, y_test = split_data(prepared_dataset)
@@ -339,5 +332,5 @@ def main_google_play():
     '''
 
 if __name__ == '__main__':
-    main_iris()
+    #main_iris()
     main_google_play()
