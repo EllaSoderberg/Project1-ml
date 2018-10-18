@@ -6,7 +6,7 @@ import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
 import sklearn.metrics as metrics
 import matplotlib.pyplot as plt
 import random
-
+import time
 from sklearn import tree
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
@@ -172,6 +172,19 @@ def k_fold_dtree(features, target, n_splits):
     for train_index, test_index in kf.split(features):
         X_train, X_test = features.loc[train_index], features.loc[test_index]
         y_train, y_test = target[train_index], target[test_index]
+        print("???")
+        print(set(target))
+        print(set(y_train))
+
+
+        '''print("<><><><><>")
+        i = 0
+        for a in X_train.values:
+            print(i)
+            print(a)
+            print(type(a))
+            i += 1
+        print("<><><><><>")'''
 
         clf = decision_tree(X_train, y_train)
         acc = clf_accuracy(clf, X_test, y_test)
@@ -223,7 +236,7 @@ millions_converter = lambda x: int(float(x[:-1])*multipliers[x[-1]]) #not sure a
 plus_remover = lambda x: int(float(x[:-1].replace(',', '')))
 type_converter = lambda x: bool(0 if x == 'Free' or x == 0 else 1)
 price_converter = lambda x: float(x if type(x) == int else x.replace('$', ''))
-date_converter = lambda x: datetime.strptime(x, '%B %d, %Y')
+date_converter = lambda x: int(time.mktime(datetime.strptime(x, '%B %d, %Y').timetuple()))
 
 
 def convert_columns_to_int(value):
@@ -306,31 +319,31 @@ def main_google_play():
     dataset = read_fileG(address)
     feature_data = prepare_features(dataset[feature_names], feature_names)
     target_data = dataset[target_name].drop(10472)
-    print(len(feature_data))
-    print(len(target_data))
-    '''
+
     #  Simple data split
-    X_train, X_test, y_train, y_test = split_data(prepared_dataset)
+    X_train, X_test, y_train, y_test = split_data(feature_data, target_data)
 
     #  Visualisation of data
-    plot_dataset(prepared_dataset)
+    #plot_dataset(prepared_dataset)
     #plot_tree(prepared_dataset, decision_tree(X_train, y_train), ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'],
     #              'gplayfile.png')
 
     #  Validation of a decision tree.
     #  Methods used: accuracy score, confusion matrix, precision score, recall score and k-fold
+
     clf = decision_tree(X_train, y_train)
     validation(y_test, clf.predict(X_test), "Decision tree")
     validation(y_train, clf.predict(X_train), "Decision tree resubstitution")
-    k_fold = k_fold_dtree(dataset, 5)
-    print("K-fold validation:", np.mean(k_fold))
 
+    k_fold = k_fold_dtree(feature_data, target_data, 5)
+    print("K-fold validation:", np.mean(k_fold))
+    '''
     #  Validation of a random decision tree forest.
     #  Methods used: accuracy score, confusion matrix, precision score and recall score
-    forest_pred = random_forest(dataset, X_test, 4)
+    forest_pred = random_forest(feature_data, target_data, X_test, 4)
     validation(y_test, forest_pred, "Random forest")
     '''
 
 if __name__ == '__main__':
-    #main_iris()
+    main_iris()
     main_google_play()
