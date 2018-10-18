@@ -57,7 +57,7 @@ def read_fileI(file, features_list, target):
     data = pd.read_csv(file, names=names_list)
     return data
 
-def plot_dataset(dataset):
+def plot_dataset(dataset, target, layout_size):
     """
     Shows a scatter matrix, a histogram and a plot.
     :param dataset: A dataset
@@ -68,9 +68,9 @@ def plot_dataset(dataset):
     print(dataset.describe())
 
     # class distribution
-    print(dataset.groupby('class').size())
+    print(dataset.groupby(target).size())
     scatter_matrix(dataset)
-    dataset.plot(kind='box', subplots=True, layout=(2, 2), sharex=False, sharey=False)
+    dataset.plot(kind='box', subplots=True, layout=(layout_size, layout_size), sharex=False, sharey=False)
     dataset.hist()
     plt.show()
 
@@ -266,8 +266,7 @@ def convert_types_to_int(value, types):
 def prepare_features(dataset, feature_names):
     dataset[dataset.keys()[1]] = dataset[dataset.keys()[1]].replace(np.NaN, -1)
     data_list = dataset.values.tolist()
-    #data_list.remove(data_list[10472])
-    #["Category", "Rating", "Reviews", "Size", "Price", "Content Rating", "Genres", "Last Updated"]
+
     categories = list(set([row[0] for row in data_list]))
     content_ratings = list(set([row[5] for row in data_list]))
     genres = list(set([row[6] for row in data_list]))
@@ -302,7 +301,7 @@ def main_iris():
     X_train, X_test, y_train, y_test = split_data(iris_features, iris_target)
 
     #  Visualisation of data
-    plot_dataset(iris)
+    plot_dataset(iris, target_name, 2)
     plot_tree(decision_tree(X_train, y_train), feature_names, ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'],
               'treefile.png')
 
@@ -329,13 +328,13 @@ def main_google_play():
     dataset.to_csv("test.csv", sep='\t')
     print(dataset.values[10838])
     feature_data = prepare_features(dataset[feature_names], feature_names)
-    target_data = dataset[target_name]#.drop(10472)
+    target_data = dataset[target_name]
 
     #  Simple data split
     X_train, X_test, y_train, y_test = split_data(feature_data, target_data)
 
     #  Visualisation of data
-    #plot_dataset(prepared_dataset)
+    plot_dataset(pd.concat([feature_data, target_data], axis=1, join='inner'), feature_names, 3)
     #plot_tree(prepared_dataset, decision_tree(X_train, y_train), ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'],
     #              'gplayfile.png')
 
@@ -355,5 +354,5 @@ def main_google_play():
     validation(y_test, forest_pred, "Random forest")
 
 if __name__ == '__main__':
-    main_iris()
-    #main_google_play()
+    #main_iris()
+    main_google_play()
