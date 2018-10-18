@@ -31,7 +31,20 @@ TODO:
 """
 
 
-def read_file(file, features_list, target):
+def read_fileG(file):
+    """
+    Reads the file containing the dataset using pandas
+    :param file: path to file
+    :param features_list: a list of the names of the parameters to be used
+    :param target: the name of the target
+    :return: A pandas dataset, features and target
+    """
+    #names_list = features_list.copy()
+    #names_list.append(target)
+    data = pd.read_csv(file)
+    return data
+
+def read_fileI(file, features_list, target):
     """
     Reads the file containing the dataset using pandas
     :param file: path to file
@@ -42,11 +55,7 @@ def read_file(file, features_list, target):
     names_list = features_list.copy()
     names_list.append(target)
     data = pd.read_csv(file, names=names_list)
-    features = data[features_list]
-    target = data[target]
-    print(data.head())
-    return data, features, target
-
+    return data
 
 def plot_dataset(dataset):
     """
@@ -259,10 +268,19 @@ def prepare_dataset(dataset):
 
 
 def main_iris():
+    address = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
     feature_names = ["sepal length", "sepal width", "petal length", "petal width"]
     target_name = "class"
-    iris, iris_features, iris_target = read_file("https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
-                     feature_names, target_name)
+
+    dataset = read_fileI(address, feature_names, target_name)
+    feature_data = dataset[feature_names]
+    target_data = dataset[target_name]
+
+    print(dataset)
+    #TODO refactor names
+    iris = dataset
+    iris_features = feature_data
+    iris_target = target_data
 
     #  Simple data split
     X_train, X_test, y_train, y_test = split_data(iris_features, iris_target)
@@ -288,17 +306,23 @@ def main_iris():
 
 def main_google_play():
     address = 'google-play-store-apps\googleplaystore.csv'
-    dataset = read_file(address)
-    prepared_dataset = prepare_dataset(dataset)
-    print(prepared_dataset)
+    feature_names = ["Category", "Rating", "Reviews", "Size", "Installs", "Price", "Content Rating", "Genres", "Last Updated"]
+    target_name = "Installs"
 
+    dataset = read_fileG(address)
+    feature_data = dataset[feature_names]
+    target_data = dataset[target_name]
+
+    #prepared_dataset = prepare_dataset(dataset)
+    print(target_data)
+    '''
     #  Simple data split
     X_train, X_test, y_train, y_test = split_data(prepared_dataset)
 
     #  Visualisation of data
     plot_dataset(prepared_dataset)
     #plot_tree(prepared_dataset, decision_tree(X_train, y_train), ['Iris-setosa', 'Iris-versicolor', 'Iris-virginica'],
-    #              'gplayfile.png')'''
+    #              'gplayfile.png')
 
     #  Validation of a decision tree.
     #  Methods used: accuracy score, confusion matrix, precision score, recall score and k-fold
@@ -312,7 +336,8 @@ def main_google_play():
     #  Methods used: accuracy score, confusion matrix, precision score and recall score
     forest_pred = random_forest(dataset, X_test, 4)
     validation(y_test, forest_pred, "Random forest")
-
+    '''
 
 if __name__ == '__main__':
     main_iris()
+    main_google_play()
